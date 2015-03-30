@@ -1,6 +1,7 @@
 # coding=utf-8
 import pygame
 from pygame.sprite import Group
+from city.point import Point
 from environment import Environment
 from real_sprite import RealSprite
 
@@ -25,25 +26,37 @@ class Simulation:
 
     def on_loop(self, ticks):
         bus = self.environment.transporters[0]
-        taxi = self.environment.transporters[1]
-        tram = self.environment.transporters[2]
-        bus2 = self.environment.transporters[3]
-        bus.x = 0 + ticks / 100
-        bus.y = 0 + ticks / 100
+        # taxi = self.environment.transporters[1]
+        # tram = self.environment.transporters[2]
+        # bus2 = self.environment.transporters[3]
+        if isinstance(bus.position, Point):
+            bus.x = bus.position.x * self.width
+            bus.y = bus.position.y * self.height
+            bus.position = bus.get_next_element()
+            bus.progress = 0.0
+        else:
+            bus.progress += (ticks - bus.lastTick) / 3000.0
+            bus.x = (bus.position[0].x + (bus.position[1].x - bus.position[0].x) * bus.progress) * self.width
+            bus.y = (bus.position[0].y + (bus.position[1].y - bus.position[0].y) * bus.progress) * self.height
+            bus.lastTick = ticks
+            if bus.progress >= 1.0:
+                bus.position = bus.position[1]
+
         bus.rect = bus.image.get_rect(center=(bus.x, bus.y))
-        taxi.x = 800
-        taxi.y = 600
-        taxi.rect = taxi.image.get_rect(center=(taxi.x, taxi.y))
-        tram.x = 800
-        tram.y = 0
-        tram.rect = tram.image.get_rect(center=(tram.x, tram.y))
-        bus2.x = 0
-        bus2.y = 600
-        bus2.rect = bus2.image.get_rect(center=(bus2.x, bus2.y))
+        # taxi.x = 800
+        # taxi.y = 600
+        # taxi.rect = taxi.image.get_rect(center=(taxi.x, taxi.y))
+        # tram.x = 800
+        # tram.y = 0
+        # tram.rect = tram.image.get_rect(center=(tram.x, tram.y))
+        # bus2.x = 0
+        # bus2.y = 600
+        # bus2.rect = bus2.image.get_rect(center=(bus2.x, bus2.y))
 
     def render_city(self, ticks):
         Group(map(lambda sprite: RealSprite(sprite, self.width, self.height), self.environment.city.nodes())).draw(self.screen)
-        # self.environment.city.edges()
+        for edge in self.environment.city.edges():
+           pygame.draw.aaline(self.screen, (0, 0, 0), (edge[0].x*self.width, edge[0].y*self.height), (edge[1].x*self.width, edge[1].y*self.height))
 
     def render_transporters(self, ticks):
         Group(self.environment.transporters).draw(self.screen)

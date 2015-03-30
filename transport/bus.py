@@ -6,11 +6,6 @@ class Bus(Transporter):
     bus_capacity = 40
     bus_speed = 5
 
-    def __init__(self, env):
-        Transporter.__init__(self, env, Bus.bus_capacity, Bus.bus_speed)
+    def __init__(self, position, route):
+        Transporter.__init__(self, Bus.bus_capacity, Bus.bus_speed, position, route)
         self.image = image.load('img/bus.png')
-
-    def run(self):
-        while True:
-            print('Bus running at %d' % self.env.now)
-            yield self.env.timeout(self.speed)
