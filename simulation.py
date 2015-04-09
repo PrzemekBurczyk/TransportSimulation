@@ -4,6 +4,7 @@ from pygame.sprite import Group
 from city.point import Point
 from environment import Environment
 from real_sprite import RealSprite
+import math
 
 
 class Simulation:
@@ -25,24 +26,26 @@ class Simulation:
             self.running = False
 
     def on_loop(self, ticks):
-        bus = self.environment.transporters[0]
         # taxi = self.environment.transporters[1]
         # tram = self.environment.transporters[2]
         # bus2 = self.environment.transporters[3]
-        if isinstance(bus.position, Point):
-            bus.x = bus.position.x * self.width
-            bus.y = bus.position.y * self.height
-            bus.position = bus.get_next_element()
-            bus.progress = 0.0
-        else:
-            bus.progress += (ticks - bus.lastTick) / 3000.0
-            bus.x = (bus.position[0].x + (bus.position[1].x - bus.position[0].x) * bus.progress) * self.width
-            bus.y = (bus.position[0].y + (bus.position[1].y - bus.position[0].y) * bus.progress) * self.height
-            bus.lastTick = ticks
-            if bus.progress >= 1.0:
-                bus.position = bus.position[1]
+        for t in self.environment.transporters:
+            if isinstance(t.position, Point):
+                t.x = t.position.x * self.width
+                t.y = t.position.y * self.height
+                if t.lastTick + 1000 < ticks:
+                    t.position = t.get_next_element()
+                    t.progress = 0.0
+                    t.lastTick = ticks
+            else:
+                t.progress += (ticks - t.lastTick) / 500000.0 * t.speed / math.sqrt((t.position[1].x - t.position[0].x) * (t.position[1].x - t.position[0].x) + (t.position[1].y - t.position[0].y) * (t.position[1].y - t.position[0].y))
+                t.x = (t.position[0].x + (t.position[1].x - t.position[0].x) * t.progress) * self.width
+                t.y = (t.position[0].y + (t.position[1].y - t.position[0].y) * t.progress) * self.height
+                t.lastTick = ticks
+                if t.progress >= 1.0:
+                    t.position = t.position[1]
 
-        bus.rect = bus.image.get_rect(center=(bus.x, bus.y))
+            t.rect = t.image.get_rect(center=(t.x, t.y))
         # taxi.x = 800
         # taxi.y = 600
         # taxi.rect = taxi.image.get_rect(center=(taxi.x, taxi.y))

@@ -13,7 +13,7 @@ class Transporter(Sprite):
         if speed is None:
             speed = randint(1, Transporter.max_speed)
         self.capacity = capacity
-        self.speed = speed
+        self.speed = speed * 10
         self.lastTick = 0
         self.progress = 0.0
         self.route = route
