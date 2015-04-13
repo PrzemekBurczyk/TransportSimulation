@@ -38,12 +38,14 @@ class Simulation:
                     t.progress = 0.0
                     t.lastTick = ticks
             else:
-                t.progress += (ticks - t.lastTick) / 500000.0 * t.speed / math.sqrt((t.position[1].x - t.position[0].x) * (t.position[1].x - t.position[0].x) + (t.position[1].y - t.position[0].y) * (t.position[1].y - t.position[0].y))
-                t.x = (t.position[0].x + (t.position[1].x - t.position[0].x) * t.progress) * self.width
-                t.y = (t.position[0].y + (t.position[1].y - t.position[0].y) * t.progress) * self.height
+                position_val = t.position['val']
+                speed = min([int(t.speed), int(position_val.max_speed)])*5
+                t.progress += (ticks - t.lastTick) / 500000.0 * speed / math.sqrt((position_val.end.x - position_val.begin.x) * (position_val.end.x - position_val.begin.x) + (position_val.end.y - position_val.begin.y) * (position_val.end.y - position_val.begin.y))
+                t.x = (position_val.begin.x + (position_val.end.x - position_val.begin.x) * t.progress) * self.width
+                t.y = (position_val.begin.y + (position_val.end.y - position_val.begin.y) * t.progress) * self.height
                 t.lastTick = ticks
                 if t.progress >= 1.0:
-                    t.position = t.position[1]
+                    t.position = position_val.end
 
             t.rect = t.image.get_rect(center=(t.x, t.y))
         # taxi.x = 800

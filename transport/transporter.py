@@ -1,7 +1,6 @@
 from random import randint
 from pygame.sprite import Sprite
 
-
 class Transporter(Sprite):
     max_capacity = 100
     max_speed = 10
@@ -13,7 +12,7 @@ class Transporter(Sprite):
         if speed is None:
             speed = randint(1, Transporter.max_speed)
         self.capacity = capacity
-        self.speed = speed * 10
+        self.speed = speed
         self.lastTick = 0
         self.progress = 0.0
         self.route = route
@@ -21,6 +20,6 @@ class Transporter(Sprite):
 
     def get_next_element(self):
         for edge in self.route.edges():
-            if edge[0] == self.position:
-                return edge
+            if self.route[edge[0]][edge[1]]['val'].begin == self.position:
+                return self.route[edge[0]][edge[1]]
         return None

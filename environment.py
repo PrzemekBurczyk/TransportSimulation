@@ -3,6 +3,7 @@ from transport.bus import Bus
 from transport.taxi import Taxi
 from transport.tram import Tram
 import networkx as nx
+from city.edge import Edge
 
 
 class Environment():
@@ -11,6 +12,7 @@ class Environment():
     paths = []
     cycles = []
     speed = []
+    edge_speed = []
 
     for line in open('config/points'):
         p = line.strip().split(" ")
@@ -19,7 +21,9 @@ class Environment():
         points.append(Point(float(p[0]), float(p[1])))
 
     for line in open('config/paths'):
-        p = line.strip().split(" ")
+        full_path = line.strip().split(",")
+        edge_speed.append(full_path[1])
+        p = full_path[0].split(" ")
         path = []
         for point in p:
             path.append(int(point))
@@ -53,16 +57,17 @@ class Environment():
             for i in range(len(cycle_array)):
                 is_edge = False
                 for edge in self.city.edges():
-                    if (edge[0] == cycle_array[i] and edge[1] == cycle_array[(i+1)%len(cycle_array)]) or (edge[1] == cycle_array[i] and edge[0] == cycle_array[(i+1)%len(cycle_array)]):
+                    edge_val = self.city[edge[0]][edge[1]]['val']
+                    if (edge_val.begin == cycle_array[i] and edge_val.end == cycle_array[(i+1)%len(cycle_array)]) or (edge_val.end == cycle_array[i] and edge_val.begin == cycle_array[(i+1)%len(cycle_array)]):
                         is_edge = True
+                        road.add_edge(edge[0], edge[1], val=edge_val)
                 if not is_edge:
                     exit("bad configuration: no connection between " + str(cycle_array[i].x) + "," + str(cycle_array[i].y) + " and " + str(cycle_array[(i+1)%len(cycle_array)].x) + "," + str(cycle_array[(i+1)%len(cycle_array)].y))
-            road.add_cycle(cycle_array)
+
+            # road.add_cycle(cycle_array)
             self.transporters.append(Bus(Environment.points[cycle[0]], road, Environment.speed[j]))
 
     def init_city(self):
-        for path in Environment.paths:
-            path_array = []
-            for point in path:
-                path_array.append(Environment.points[point])
-            self.city.add_path(path_array)
+        for i in range(len(Environment.paths)):
+            path = Environment.paths[i]
+            self.city.add_edge(Environment.points[path[0]], Environment.points[path[1]], val=Edge(Environment.points[path[0]], Environment.points[path[1]], Environment.edge_speed[i]))
