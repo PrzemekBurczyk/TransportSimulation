@@ -1,4 +1,5 @@
 from city.bus_stop import BusStop
+from city.double_stop import DoubleStop
 from city.point import Point
 from city.tram_stop import TramStop
 from transport.bus import Bus
@@ -10,65 +11,79 @@ from city.edge import Edge
 
 class Environment():
 
-    points = []
-    paths = []
-    cycles = []
-    speed = []
-    edge_speed = []
-
-    for line in open('config/points'):
-        if line.startswith("#"):
-            continue
-        p = line.strip().split(" ")
-        x = float(p[0])
-        y = float(p[1])
-        point_type = p[2]
-        load = int(p[3])
-        if x < 0 or x > 1 or y < 0 or y > 1:
-            exit("bad configuration: points coordinates must be between 0 and 1")
-        if point_type not in ['bus', 'tram', 'none']:
-            exit("bad configuration: point types must be one of: 'bus', 'tram', 'none'")
-        if point_type == 'bus':
-            points.append(BusStop(x, y, point_type, load))
-        elif point_type == 'tram':
-            points.append(TramStop(x, y, point_type, load))
-        elif point_type == 'none':
-            points.append(Point(x, y, point_type, load))
-
-    for line in open('config/paths'):
-        full_path = line.strip().split(",")
-        edge_speed.append(full_path[1])
-        p = full_path[0].split(" ")
-        path = []
-        for point in p:
-            path.append(int(point))
-            if int(point) < 0 or int(point) > len(points):
-                exit("bad configuration: point number mus be between 0 and " + str(len(points)))
-        paths.append(path)
-
-    for line in open('config/roads'):
-        trans = line.strip().split(",")
-        speed.append(int(trans[1]))
-        r = trans[0].split(" ")
-        road = []
-        for point in r:
-            road.append(int(point))
-        cycles.append(road)
-
     def __init__(self):
+        self.points = []
+        self.paths = []
+        self.cycles = []
+        self.speed = []
+        self.edge_speed = []
+
+        self.load_points()
+        self.load_paths()
+        self.load_roads()
+
         self.city = nx.DiGraph()
         self.transporters = []
 
         self.init_city()
         self.init_transporters()
 
+    def load_points(self):
+        for line in open('config/points'):
+            if line.startswith("#"):
+                continue
+            p = line.strip().split(" ")
+            x = float(p[0])
+            y = float(p[1])
+            point_types = p[2].split(",")
+            load = int(p[3])
+            if x < 0 or x > 1 or y < 0 or y > 1:
+                exit("bad configuration: points coordinates must be between 0 and 1")
+            if len(point_types) == 1:
+                point_type = point_types[0]
+                if point_type == 'bus':
+                    self.points.append(BusStop(x, y, point_types, load))
+                elif point_type == 'tram':
+                    self.points.append(TramStop(x, y, point_types, load))
+                elif point_type == 'none':
+                    self.points.append(Point(x, y, point_types, load))
+                else:
+                    exit("bad configuration: point types must be one of: 'bus', 'tram', 'none'")
+            else:
+                if len(point_types) == 2 and 'bus' in point_types and 'tram' in point_types:
+                    self.points.append(DoubleStop(x, y, point_types, load))
+                else:
+                    exit("bad configuration: unknown point types combination")
+
+    def load_paths(self):
+        for line in open('config/paths'):
+            full_path = line.strip().split(",")
+            self.edge_speed.append(full_path[1])
+            p = full_path[0].split(" ")
+            path = []
+            for point in p:
+                path.append(int(point))
+                if int(point) < 0 or int(point) > len(self.points):
+                    exit("bad configuration: point number must be between 0 and " + str(len(self.points)))
+            self.paths.append(path)
+
+    def load_roads(self):
+        for line in open('config/roads'):
+            trans = line.strip().split(",")
+            self.speed.append(int(trans[1]))
+            r = trans[0].split(" ")
+            road = []
+            for point in r:
+                road.append(int(point))
+            self.cycles.append(road)
+
     def init_transporters(self):
-        for j in range(len(Environment.cycles)):
-            cycle = Environment.cycles[j]
+        for j in range(len(self.cycles)):
+            cycle = self.cycles[j]
             road = nx.DiGraph()
             cycle_array = []
             for point in cycle:
-                cycle_array.append(Environment.points[point])
+                cycle_array.append(self.points[point])
             for i in range(len(cycle_array)):
                 is_edge = False
                 for edge in self.city.edges():
@@ -80,9 +95,9 @@ class Environment():
                     exit("bad configuration: no connection between " + str(cycle_array[i].x) + "," + str(cycle_array[i].y) + " and " + str(cycle_array[(i+1) % len(cycle_array)].x) + "," + str(cycle_array[(i+1) % len(cycle_array)].y))
 
             # road.add_cycle(cycle_array)
-            self.transporters.append(Bus(Environment.points[cycle[0]], road, Environment.speed[j]))
+            self.transporters.append(Bus(self.points[cycle[0]], road, self.speed[j]))
 
     def init_city(self):
-        for i in range(len(Environment.paths)):
-            path = Environment.paths[i]
-            self.city.add_edge(Environment.points[path[0]], Environment.points[path[1]], val=Edge(Environment.points[path[0]], Environment.points[path[1]], Environment.edge_speed[i]))
+        for i in range(len(self.paths)):
+            path = self.paths[i]
+            self.city.add_edge(self.points[path[0]], self.points[path[1]], val=Edge(self.points[path[0]], self.points[path[1]], self.edge_speed[i]))
