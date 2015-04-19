@@ -9,15 +9,22 @@ import math
 
 class Simulation:
 
+    COLORS = {
+        'white': (255, 255, 255),
+        'black': (0, 0, 0)
+    }
+
     def __init__(self, environment):
         self.environment = environment
         self.bus = self.environment.transporters[0]
         self.running = True
         self.screen = None
         self.size = self.width, self.height = 800, 600
+        self.font = None
 
     def on_init(self):
         pygame.init()
+        self.font = pygame.font.SysFont("monospace", 15)
         self.screen = pygame.display.set_mode(self.size, pygame.HWSURFACE | pygame.DOUBLEBUF)
         self.running = True
 
@@ -46,17 +53,40 @@ class Simulation:
 
             t.rect = t.image.get_rect(center=(t.x, t.y))
 
-    def render_city(self, ticks):
-        for edge in self.environment.city.edges():
-            pygame.draw.aaline(self.screen, (0, 0, 0), (edge[0].x*self.width, edge[0].y*self.height), (edge[1].x*self.width, edge[1].y*self.height))
+    def draw_text_real(self, text, real_x, real_y, color):
+        if color is None:
+            color = Simulation.COLORS['white']
+        text = self.font.render(str(text), True, color)
+        text_position = text.get_rect(center=(real_x, real_y))
+        self.screen.blit(text, text_position)
 
+    def draw_text(self, text, x, y, color):
+        self.draw_text_real(text, x * self.width, y * self.height, color)
+
+    def render_city(self, ticks):
+
+        # draw edges
+        for edge in self.environment.city.edges():
+            pygame.draw.aaline(self.screen, Simulation.COLORS['black'], (edge[0].x * self.width, edge[0].y * self.height), (edge[1].x * self.width, edge[1].y * self.height))
+
+        # draw stops / points
         Group(map(lambda sprite: RealSprite(sprite, self.width, self.height), self.environment.city.nodes())).draw(self.screen)
 
+        # draw labels / texts on top
+        for node in self.environment.city.nodes():
+            self.draw_text(node.load, node.x, node.y, Simulation.COLORS['white'])
+
     def render_transporters(self, ticks):
+
+        # draw transporter sprites
         Group(self.environment.transporters).draw(self.screen)
 
+        # draw transporter labels / texts on top
+        for transporter in self.environment.transporters:
+            self.draw_text_real(transporter.load, transporter.x, transporter.y, Simulation.COLORS['white'])
+
     def on_render(self, ticks):
-        self.screen.fill((255, 255, 255))
+        self.screen.fill(Simulation.COLORS['white'])
 
         self.render_city(ticks)
         self.render_transporters(ticks)

@@ -18,9 +18,12 @@ class Transporter(Sprite):
         self.progress = 0.0
         self.route = route
         self.position = position
+        self.load = 0
 
     def get_next_element(self):
+        # print "position: " + str(self.position)
         for edge in self.route.edges():
             if self.route[edge[0]][edge[1]]['val'].begin == self.position:
+                # print "chosen: " + str(self.route[edge[0]][edge[1]])
                 return self.route[edge[0]][edge[1]]
         return None
