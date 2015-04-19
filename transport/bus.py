@@ -1,6 +1,7 @@
 from pygame import image
 from transport.transporter import Transporter
 
+
 class Bus(Transporter):
     bus_capacity = 40
     bus_speed = 5

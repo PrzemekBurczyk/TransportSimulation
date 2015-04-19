@@ -1,4 +1,6 @@
+from city.bus_stop import BusStop
 from city.point import Point
+from city.tram_stop import TramStop
 from transport.bus import Bus
 from transport.taxi import Taxi
 from transport.tram import Tram
@@ -15,10 +17,23 @@ class Environment():
     edge_speed = []
 
     for line in open('config/points'):
+        if line.startswith("#"):
+            continue
         p = line.strip().split(" ")
-        if float(p[0]) < 0 or float(p[0]) > 1 or float(p[1]) < 0 or float(p[1]) > 1:
+        x = float(p[0])
+        y = float(p[1])
+        point_type = p[2]
+        load = int(p[3])
+        if x < 0 or x > 1 or y < 0 or y > 1:
             exit("bad configuration: points coordinates must be between 0 and 1")
-        points.append(Point(float(p[0]), float(p[1])))
+        if point_type not in ['bus', 'tram', 'none']:
+            exit("bad configuration: point types must be one of: 'bus', 'tram', 'none'")
+        if point_type == 'bus':
+            points.append(BusStop(x, y, point_type, load))
+        elif point_type == 'tram':
+            points.append(TramStop(x, y, point_type, load))
+        elif point_type == 'none':
+            points.append(Point(x, y, point_type, load))
 
     for line in open('config/paths'):
         full_path = line.strip().split(",")

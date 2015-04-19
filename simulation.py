@@ -47,9 +47,10 @@ class Simulation:
             t.rect = t.image.get_rect(center=(t.x, t.y))
 
     def render_city(self, ticks):
-        Group(map(lambda sprite: RealSprite(sprite, self.width, self.height), self.environment.city.nodes())).draw(self.screen)
         for edge in self.environment.city.edges():
             pygame.draw.aaline(self.screen, (0, 0, 0), (edge[0].x*self.width, edge[0].y*self.height), (edge[1].x*self.width, edge[1].y*self.height))
+
+        Group(map(lambda sprite: RealSprite(sprite, self.width, self.height), self.environment.city.nodes())).draw(self.screen)
 
     def render_transporters(self, ticks):
         Group(self.environment.transporters).draw(self.screen)
