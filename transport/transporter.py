@@ -1,6 +1,7 @@
 from random import randint
 from pygame.sprite import Sprite
 
+
 class Transporter(Sprite):
     max_capacity = 100
     max_speed = 10

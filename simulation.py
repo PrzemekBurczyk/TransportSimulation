@@ -26,9 +26,6 @@ class Simulation:
             self.running = False
 
     def on_loop(self, ticks):
-        # taxi = self.environment.transporters[1]
-        # tram = self.environment.transporters[2]
-        # bus2 = self.environment.transporters[3]
         for t in self.environment.transporters:
             if isinstance(t.position, Point):
                 t.x = t.position.x * self.width
@@ -48,20 +45,11 @@ class Simulation:
                     t.position = position_val.end
 
             t.rect = t.image.get_rect(center=(t.x, t.y))
-        # taxi.x = 800
-        # taxi.y = 600
-        # taxi.rect = taxi.image.get_rect(center=(taxi.x, taxi.y))
-        # tram.x = 800
-        # tram.y = 0
-        # tram.rect = tram.image.get_rect(center=(tram.x, tram.y))
-        # bus2.x = 0
-        # bus2.y = 600
-        # bus2.rect = bus2.image.get_rect(center=(bus2.x, bus2.y))
 
     def render_city(self, ticks):
         Group(map(lambda sprite: RealSprite(sprite, self.width, self.height), self.environment.city.nodes())).draw(self.screen)
         for edge in self.environment.city.edges():
-           pygame.draw.aaline(self.screen, (0, 0, 0), (edge[0].x*self.width, edge[0].y*self.height), (edge[1].x*self.width, edge[1].y*self.height))
+            pygame.draw.aaline(self.screen, (0, 0, 0), (edge[0].x*self.width, edge[0].y*self.height), (edge[1].x*self.width, edge[1].y*self.height))
 
     def render_transporters(self, ticks):
         Group(self.environment.transporters).draw(self.screen)
