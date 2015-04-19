@@ -20,11 +20,11 @@ class Simulation:
         self.running = True
         self.screen = None
         self.size = self.width, self.height = 800, 600
-        self.font = None
+        self.font_normal = None
 
     def on_init(self):
         pygame.init()
-        self.font = pygame.font.SysFont("monospace", 15)
+        self.font_normal = pygame.font.SysFont("monospace", 15)
         self.screen = pygame.display.set_mode(self.size, pygame.HWSURFACE | pygame.DOUBLEBUF)
         self.running = True
 
@@ -56,7 +56,7 @@ class Simulation:
     def draw_text_real(self, text, real_x, real_y, color):
         if color is None:
             color = Simulation.COLORS['white']
-        text = self.font.render(str(text), True, color)
+        text = self.font_normal.render(str(text), True, color)
         text_position = text.get_rect(center=(real_x, real_y))
         self.screen.blit(text, text_position)
 
