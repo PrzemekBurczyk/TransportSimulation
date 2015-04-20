@@ -15,6 +15,8 @@ class Simulation:
         'black': (0, 0, 0)
     }
 
+    TICKS_PER_LOAD_CHANGE = 100
+
     def __init__(self, environment):
         self.environment = environment
         self.bus = self.environment.transporters[0]
@@ -39,18 +41,32 @@ class Simulation:
                 t.x = t.position.x * self.width
                 t.y = t.position.y * self.height
                 if t.state == 'driving' or t.state is None:
-                    load_out = randint(0, t.load)
-                    load_in = randint(0, min(t.position.load, t.get_capacity_left() + load_out))
-                    t.state = 'loadingIn'
-                if t.lastTick + 500 + (load_in + load_out) * 100 < ticks:
-                    t.position = t.get_next_element()
-                    t.progress = 0.0
+                    t.load_out = randint(0, t.load)
+                    t.load_in = randint(0, min(t.position.load, t.get_capacity_left() + t.load_out))
+                    t.state = 'loadingOut'
                     t.lastTick = ticks
                 else:
-                    if t.state == 'loadingIn':
-                        print('loadingIn')
-                    elif t.state == 'loadingOut':
-                        print('loadingOut')
+                    load_change = int((ticks - t.lastTick) / Simulation.TICKS_PER_LOAD_CHANGE)
+                    if load_change > 0:
+                        if t.state == 'loadingIn':
+                            t.load_in -= load_change
+                            if t.load_in <= 0:
+                                load_change += t.load_in
+                                t.state = 'driving'
+                            t.load += load_change
+                            t.position.load -= load_change
+                            if t.state == 'driving':
+                                t.position = t.get_next_element()
+                                t.progress = 0.0
+                            t.lastTick = ticks
+                        elif t.state == 'loadingOut':
+                            t.load_out -= load_change
+                            if t.load_out <= 0:
+                                load_change += t.load_out
+                                t.state = 'loadingIn'
+                            t.load -= load_change
+                            t.position.load += load_change
+                            t.lastTick = ticks
             else:
                 position_val = t.position['val']
                 speed = min([int(t.speed), int(position_val.max_speed)])*5
