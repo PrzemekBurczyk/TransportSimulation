@@ -4,6 +4,7 @@ from pygame.sprite import Group
 from city.point import Point
 from environment import Environment
 from real_sprite import RealSprite
+from random import randint
 import math
 
 
@@ -37,10 +38,19 @@ class Simulation:
             if isinstance(t.position, Point):
                 t.x = t.position.x * self.width
                 t.y = t.position.y * self.height
-                if t.lastTick + 1000 < ticks:
+                if t.state == 'driving' or t.state is None:
+                    load_out = randint(0, t.load)
+                    load_in = randint(0, min(t.position.load, t.get_capacity_left() + load_out))
+                    t.state = 'loadingIn'
+                if t.lastTick + 500 + (load_in + load_out) * 100 < ticks:
                     t.position = t.get_next_element()
                     t.progress = 0.0
                     t.lastTick = ticks
+                else:
+                    if t.state == 'loadingIn':
+                        print('loadingIn')
+                    elif t.state == 'loadingOut':
+                        print('loadingOut')
             else:
                 position_val = t.position['val']
                 speed = min([int(t.speed), int(position_val.max_speed)])*5

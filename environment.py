@@ -96,7 +96,7 @@ class Environment():
                 is_edge = False
                 for edge in self.city.edges():
                     edge_val = self.city[edge[0]][edge[1]]['val']
-                    if (edge_val.begin == cycle_array[i] and edge_val.end == cycle_array[(i+1) % len(cycle_array)]) or (edge_val.end == cycle_array[i] and edge_val.begin == cycle_array[(i+1) % len(cycle_array)]):
+                    if edge_val.begin == cycle_array[i] and edge_val.end == cycle_array[(i+1) % len(cycle_array)]:
                         is_edge = True
                         road.add_edge(edge[0], edge[1], val=edge_val)
                 if not is_edge:

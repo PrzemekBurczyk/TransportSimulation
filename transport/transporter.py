@@ -19,6 +19,10 @@ class Transporter(Sprite):
         self.route = route
         self.position = position
         self.load = 0
+        self.state = None
+
+    def get_capacity_left(self):
+        return self.capacity - self.load
 
     def get_next_element(self):
         # print "position: " + str(self.position)
