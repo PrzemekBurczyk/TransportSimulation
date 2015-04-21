@@ -41,6 +41,7 @@ class Simulation:
                 t.x = t.position.x * self.width
                 t.y = t.position.y * self.height
                 if t.state == 'driving' or t.state is None:
+                    t.position.transporter = t.id
                     t.load_out = randint(0, t.load)
                     t.load_in = randint(0, min(t.position.load, t.get_capacity_left() + t.load_out))
                     t.state = 'loadingOut'
@@ -53,6 +54,7 @@ class Simulation:
                             if t.load_in <= 0:
                                 load_change += t.load_in
                                 t.state = 'driving'
+                                t.position.transporter = None
                             t.load += load_change
                             t.position.load -= load_change
                             if t.state == 'driving':
@@ -71,6 +73,12 @@ class Simulation:
                 position_val = t.position['val']
                 speed = min([int(t.speed), int(position_val.max_speed)])*5
                 t.progress += (ticks - t.lastTick) / 500000.0 * speed / math.sqrt((position_val.end.x - position_val.begin.x) * (position_val.end.x - position_val.begin.x) + (position_val.end.y - position_val.begin.y) * (position_val.end.y - position_val.begin.y))
+                max_progress = 1-0.05/math.sqrt((position_val.end.x - position_val.begin.x) * (position_val.end.x - position_val.begin.x) + (position_val.end.y - position_val.begin.y) * (position_val.end.y - position_val.begin.y))
+                if t.progress >= max_progress:
+                    if position_val.end.transporter is None or position_val.end.transporter == t.id:
+                        position_val.end.transporter = t.id
+                    else:
+                        t.progress = max_progress
                 t.x = (position_val.begin.x + (position_val.end.x - position_val.begin.x) * t.progress) * self.width
                 t.y = (position_val.begin.y + (position_val.end.y - position_val.begin.y) * t.progress) * self.height
                 t.lastTick = ticks

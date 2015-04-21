@@ -1,6 +1,6 @@
 from random import randint
 from pygame.sprite import Sprite
-
+import uuid
 
 class Transporter(Sprite):
     max_capacity = 100
@@ -20,6 +20,7 @@ class Transporter(Sprite):
         self.position = position
         self.load = 0
         self.state = None
+        self.id = uuid.uuid4()
 
     def get_capacity_left(self):
         return self.capacity - self.load

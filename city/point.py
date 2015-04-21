@@ -11,5 +11,6 @@ class Point():
         self.y = y
         self.point_types = point_types
         self.load = load
+        self.transporter = None
         self.image = image.load('img/point.png')
         # self.rect = self.image.get_rect(center=(self.x, self.y))
