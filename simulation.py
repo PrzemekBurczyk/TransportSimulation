@@ -41,9 +41,10 @@ class Simulation:
                 t.x = t.position.x * self.width
                 t.y = t.position.y * self.height
                 if t.state == 'driving' or t.state is None:
-                    t.position.transporter = t.id
+                    t.position.add_transporter(t)
                     t.load_out = randint(0, t.load)
-                    t.load_in = randint(0, min(t.position.load, t.get_capacity_left() + t.load_out))
+                    t.load_in = randint(0, min(t.position.available_load, t.get_capacity_left() + t.load_out))
+                    t.position.available_load += (t.load_out - t.load_in)
                     t.state = 'loadingOut'
                     t.lastTick = ticks
                 else:
@@ -54,7 +55,7 @@ class Simulation:
                             if t.load_in <= 0:
                                 load_change += t.load_in
                                 t.state = 'driving'
-                                t.position.transporter = None
+                                t.position.transporters.remove(t)
                             t.load += load_change
                             t.position.load -= load_change
                             if t.state == 'driving':
@@ -75,8 +76,8 @@ class Simulation:
                 t.progress += (ticks - t.lastTick) / 500000.0 * speed / math.sqrt((position_val.end.x - position_val.begin.x) * (position_val.end.x - position_val.begin.x) + (position_val.end.y - position_val.begin.y) * (position_val.end.y - position_val.begin.y))
                 max_progress = 1-0.05/math.sqrt((position_val.end.x - position_val.begin.x) * (position_val.end.x - position_val.begin.x) + (position_val.end.y - position_val.begin.y) * (position_val.end.y - position_val.begin.y))
                 if t.progress >= max_progress:
-                    if position_val.end.transporter is None or position_val.end.transporter == t.id:
-                        position_val.end.transporter = t.id
+                    if t in position_val.end.transporters or position_val.end.may_transporter_go(t):
+                        position_val.end.add_transporter(t)
                     else:
                         t.progress = max_progress
                 t.x = (position_val.begin.x + (position_val.end.x - position_val.begin.x) * t.progress) * self.width

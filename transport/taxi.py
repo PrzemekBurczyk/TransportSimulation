@@ -9,3 +9,6 @@ class Taxi(Transporter):
     def __init__(self, position):
         Transporter.__init__(self, Taxi.taxi_capacity, Taxi.taxi_speed, position)
         self.image = image.load('img/taxi.png')
+
+    def is_instance(self, transporter):
+        return isinstance(transporter, Taxi)

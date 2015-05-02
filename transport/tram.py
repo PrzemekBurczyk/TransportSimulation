@@ -9,3 +9,6 @@ class Tram(Transporter):
     def __init__(self, position=None, route=None, speed=None):
         Transporter.__init__(self, Tram.tram_capacity, speed, position, route)
         self.image = image.load('img/tram.png')
+
+    def is_instance(self, transporter):
+        return isinstance(transporter, Tram)

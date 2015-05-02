@@ -11,6 +11,17 @@ class Point():
         self.y = y
         self.point_types = point_types
         self.load = load
-        self.transporter = None
+        self.available_load = load
+        self.transporters = []
         self.image = image.load('img/point.png')
         # self.rect = self.image.get_rect(center=(self.x, self.y))
+
+    def add_transporter(self, transporter):
+        if transporter not in self.transporters:
+            self.transporters.append(transporter)
+
+    def may_transporter_go(self, transporter):
+        for t in self.transporters:
+            if t.is_instance(transporter):
+                return False
+        return True

@@ -32,3 +32,6 @@ class Transporter(Sprite):
                 # print "chosen: " + str(self.route[edge[0]][edge[1]])
                 return self.route[edge[0]][edge[1]]
         return None
+
+    def is_instance(self, transporter):
+        return False
