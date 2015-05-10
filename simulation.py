@@ -36,6 +36,17 @@ class Simulation:
             self.running = False
 
     def on_loop(self, ticks):
+        for s in self.environment.points:
+            if randint(0, 1000) < 5:
+                if randint(0, 99) < 50:
+                    outgoing = 1#min(s.available_load, randint(1, 3))
+                    if s.available_load >= 1:
+                        s.load -= outgoing
+                        s.available_load -= outgoing
+                else:
+                    incoming = 1#randint(1, 3)
+                    s.load += incoming
+                    s.available_load += incoming
         for t in self.environment.transporters:
             if isinstance(t.position, Point):
                 t.x = t.position.x * self.width

@@ -7,6 +7,7 @@ from transport.taxi import Taxi
 from transport.tram import Tram
 import networkx as nx
 from city.edge import Edge
+from random import randint
 
 
 class Environment():
@@ -18,6 +19,8 @@ class Environment():
         self.speed = []
         self.edge_speed = []
         self.transporters = []
+
+        self.tmpTaxis = []
 
         self.load_points()
         self.load_paths()
@@ -75,15 +78,16 @@ class Environment():
                 self.transporters.append(Bus())
             elif transporter_type == "tram":
                 self.transporters.append(Tram())
-            # elif transporter_type == "taxi":
-                # self.transporters.append(Taxi())
+            elif transporter_type == "taxi":
+                self.tmpTaxis.append(int(trans[1]))
             else:
                 exit("bad configuration: transporter type must be one of: 'bus', 'tram', 'taxi'")
             r = trans[0].split(" ")
             road = []
-            for point in r:
-                road.append(int(point))
-            self.cycles.append(road)
+            if transporter_type != "taxi":
+                for point in r:
+                    road.append(int(point))
+                self.cycles.append(road)
 
     def init_transporters(self):
         for j in range(len(self.cycles)):
@@ -112,3 +116,5 @@ class Environment():
         for i in range(len(self.paths)):
             path = self.paths[i]
             self.city.add_edge(self.points[path[0]], self.points[path[1]], val=Edge(self.points[path[0]], self.points[path[1]], self.edge_speed[i]))
+        for taxi in self.tmpTaxis:
+            self.transporters.append(Taxi(self.points[randint(0, len(self.points)-1)], self.city, taxi))
