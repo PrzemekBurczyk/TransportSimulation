@@ -1,6 +1,6 @@
 from pygame import image
 from pygame.sprite import Sprite
-
+from transport.taxi import Taxi
 
 class Point():
     def __init__(self, x=0.0, y=0.0, point_types=None, load=0):
@@ -21,6 +21,8 @@ class Point():
             self.transporters.append(transporter)
 
     def may_transporter_go(self, transporter):
+        if isinstance(transporter, Taxi):
+            return True
         for t in self.transporters:
             if t.is_instance(transporter):
                 return False

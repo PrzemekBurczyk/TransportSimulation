@@ -6,6 +6,7 @@ from environment import Environment
 from real_sprite import RealSprite
 from random import randint
 import math
+from transport.taxi import Taxi
 
 
 class Simulation:
@@ -15,7 +16,7 @@ class Simulation:
         'black': (0, 0, 0)
     }
 
-    TICKS_PER_LOAD_CHANGE = 100
+    TICKS_PER_LOAD_CHANGE = 200
 
     def __init__(self, environment):
         self.environment = environment
@@ -39,12 +40,12 @@ class Simulation:
         for s in self.environment.points:
             if randint(0, 1000) < 5:
                 if randint(0, 99) < 50:
-                    outgoing = 1#min(s.available_load, randint(1, 3))
+                    outgoing = min(s.available_load, randint(1, 3))
                     if s.available_load >= 1:
                         s.load -= outgoing
                         s.available_load -= outgoing
                 else:
-                    incoming = 1#randint(1, 3)
+                    incoming = randint(1, 3)
                     s.load += incoming
                     s.available_load += incoming
         for t in self.environment.transporters:
@@ -52,12 +53,18 @@ class Simulation:
                 t.x = t.position.x * self.width
                 t.y = t.position.y * self.height
                 if t.state == 'driving' or t.state is None:
-                    t.position.add_transporter(t)
-                    t.load_out = randint(0, t.load)
-                    t.load_in = randint(0, min(t.position.available_load, t.get_capacity_left() + t.load_out))
-                    t.position.available_load += (t.load_out - t.load_in)
-                    t.state = 'loadingOut'
-                    t.lastTick = ticks
+                    t.state = 'driving'
+                    if (not isinstance(t, Taxi)) or t.check_if_at_destination():
+                        t.position.add_transporter(t)
+                        t.load_out = randint(0, t.load)
+                        t.load_in = randint(0, min(t.position.available_load, t.get_capacity_left() + t.load_out))
+                        t.position.available_load += (t.load_out - t.load_in)
+                        t.state = 'loadingOut'
+                        t.lastTick = ticks
+                    else:
+                        t.lastTick = ticks
+                        t.progress = 0.0
+                        t.position = t.get_next_element()
                 else:
                     load_change = int((ticks - t.lastTick) / Simulation.TICKS_PER_LOAD_CHANGE)
                     if load_change > 0:
@@ -70,6 +77,8 @@ class Simulation:
                             t.load += load_change
                             t.position.load -= load_change
                             if t.state == 'driving':
+                                if isinstance(t, Taxi):
+                                    t.destination = t.set_destination()
                                 t.position = t.get_next_element()
                                 t.progress = 0.0
                             t.lastTick = ticks
@@ -84,7 +93,7 @@ class Simulation:
             else:
                 position_val = t.position['val']
                 speed = min([int(t.speed), int(position_val.max_speed)])*5
-                t.progress += (ticks - t.lastTick) / 500000.0 * speed / math.sqrt((position_val.end.x - position_val.begin.x) * (position_val.end.x - position_val.begin.x) + (position_val.end.y - position_val.begin.y) * (position_val.end.y - position_val.begin.y))
+                t.progress += (ticks - t.lastTick) / 1000000.0 * speed / math.sqrt((position_val.end.x - position_val.begin.x) * (position_val.end.x - position_val.begin.x) + (position_val.end.y - position_val.begin.y) * (position_val.end.y - position_val.begin.y))
                 max_progress = 1-0.05/math.sqrt((position_val.end.x - position_val.begin.x) * (position_val.end.x - position_val.begin.x) + (position_val.end.y - position_val.begin.y) * (position_val.end.y - position_val.begin.y))
                 if t.progress >= max_progress:
                     if t in position_val.end.transporters or position_val.end.may_transporter_go(t):
@@ -129,7 +138,11 @@ class Simulation:
 
         # draw transporter labels / texts on top
         for transporter in self.environment.transporters:
-            self.draw_text_real(transporter.load, transporter.x, transporter.y, Simulation.COLORS['white'])
+            if isinstance(transporter, Taxi):
+                self.draw_text_real(transporter.load, transporter.x, transporter.y, Simulation.COLORS['black'])
+            else:
+                self.draw_text_real(transporter.load, transporter.x, transporter.y, Simulation.COLORS['white'])
+
 
     def on_render(self, ticks):
         self.screen.fill(Simulation.COLORS['white'])
