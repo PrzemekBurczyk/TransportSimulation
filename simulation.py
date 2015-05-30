@@ -16,7 +16,7 @@ class Simulation:
         'black': (0, 0, 0)
     }
 
-    TICKS_PER_LOAD_CHANGE = 200
+    TICKS_PER_LOAD_CHANGE = 150
 
     def __init__(self, environment):
         self.environment = environment
@@ -98,8 +98,12 @@ class Simulation:
                 if t.progress >= max_progress:
                     if t in position_val.end.transporters or position_val.end.may_transporter_go(t):
                         position_val.end.add_transporter(t)
+                        if t.start_wait_ticks is not None:
+                            t.end_waiting(ticks)
                     else:
                         t.progress = max_progress
+                        if t.start_wait_ticks is None:
+                            t.start_waiting(ticks)
                 t.x = (position_val.begin.x + (position_val.end.x - position_val.begin.x) * t.progress) * self.width
                 t.y = (position_val.begin.y + (position_val.end.y - position_val.begin.y) * t.progress) * self.height
                 t.lastTick = ticks

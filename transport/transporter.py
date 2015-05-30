@@ -21,6 +21,7 @@ class Transporter(Sprite):
         self.load = 0
         self.state = None
         self.id = uuid.uuid4()
+        self.start_wait_ticks = None
 
     def get_capacity_left(self):
         return self.capacity - self.load
@@ -35,3 +36,10 @@ class Transporter(Sprite):
 
     def is_instance(self, transporter):
         return False
+
+    def start_waiting(self, ticks):
+        self.start_wait_ticks = ticks
+
+    def end_waiting(self, ticks):
+        print(ticks - self.start_wait_ticks)
+        self.start_wait_ticks = None
